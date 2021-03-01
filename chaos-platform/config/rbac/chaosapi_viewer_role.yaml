@@ -1,0 +1,20 @@
+# permissions for end users to view chaosapis.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: chaosapi-viewer-role
+rules:
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - chaosapis
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - chaosapis/status
+  verbs:
+  - get

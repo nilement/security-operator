@@ -1,0 +1,6 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: ChaosApi
+metadata:
+  name: chaosapi-sample
+spec:
+  size: 3
