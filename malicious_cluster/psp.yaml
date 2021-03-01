@@ -1,0 +1,10 @@
+piVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ExamplePsp
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs:     ['use']
+  resourceNames:
+  - <list of policies to authorize>

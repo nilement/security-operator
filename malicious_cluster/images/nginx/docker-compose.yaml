@@ -1,0 +1,8 @@
+version: '3.7'
+services:
+  nginx:
+    image: localhost:5000/nginx-vulnerable
+    container_name: nginx-vulnerable
+    build:
+      context: ./
+      dockerfile: ./Dockerfile

@@ -1,0 +1,21 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: python-app
+spec:
+  selector:
+    matchLabels:
+      app: python-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: python-app
+    spec:
+      containers:
+      - name: python-app
+        image: localhost:5000/pythonapp:1.0
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"

@@ -1,0 +1,6 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: SecurityChaos
+metadata:
+  name: security
+  namespace: chaos-testing
+spec: {}

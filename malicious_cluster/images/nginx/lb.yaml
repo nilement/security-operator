@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lb
+spec:
+  selector:
+    app: nginx-deployment
+  ports:
+    - port: 13337
+      targetPort: 80
+      externalIPs:
+      - 35.195.109.149
+      - 34.78.52.147
+  type: LoadBalancer
