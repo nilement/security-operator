@@ -1,7 +1,10 @@
-# Security Operator Project
+# Test environment
 
-<p>This is a project for Kubernetes security experiments.</p>
+<p>This is the test environment for the security operator.</p>
 
+Two variants: minikube and kind.
+
+Kind is easier to run but minikube provides a closer to real environment.
 
 <p>
 Test cluster to run experiments on 
