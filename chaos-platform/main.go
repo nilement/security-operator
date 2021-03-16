@@ -78,12 +78,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ChaosApiReconciler{
+	if err = (&controllers.CisExperimentReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ChaosApi"),
+		Log:    ctrl.Log.WithName("controllers").WithName("CisExperiment"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ChaosApi")
+		setupLog.Error(err, "unable to create controller", "controller", "CisExperiment")
+		os.Exit(1)
+	}
+	if err = (&controllers.MisconfigurationReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Misconfiguration"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Misconfiguration")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

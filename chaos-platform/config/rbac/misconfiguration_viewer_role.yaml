@@ -1,0 +1,20 @@
+# permissions for end users to view misconfigurations.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: misconfiguration-viewer-role
+rules:
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - misconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - misconfigurations/status
+  verbs:
+  - get
