@@ -1,6 +1,0 @@
-apiVersion: cache.example.com/v1alpha1
-kind: ChaosApi
-metadata:
-  name: chaosapi-first
-spec:
-  size: 1
