@@ -32,3 +32,81 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - cisexperiments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - cisexperiments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - cisexperiments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - dos
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - dos/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - dos/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - misconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - misconfigurations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - misconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update

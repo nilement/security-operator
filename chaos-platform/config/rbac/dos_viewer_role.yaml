@@ -1,0 +1,20 @@
+# permissions for end users to view dos.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dos-viewer-role
+rules:
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - dos
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - dos/status
+  verbs:
+  - get
