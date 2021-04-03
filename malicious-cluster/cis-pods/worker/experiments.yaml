@@ -1,4 +1,13 @@
 experiments:
+  - key: 1.0.0
+    file: "./tst.yaml"
+    operation: "chmod 645"
+  - key: 1.0.1
+    file: "./dir2/conf2.toml"
+    operation: "chmod 646"
+  - key: 1.0.2
+    file: "./tst.yaml"
+    operation: "chown nobody"
   - key: 4.1.1
     file: "/config/10-kubeadm.conf"
     operation: "chmod 645"

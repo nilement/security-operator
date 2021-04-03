@@ -7,12 +7,13 @@ spec:
   restartPolicy: Never
   containers:
   - name: cis-worker
-    image: 192.168.99.126:5000/cis-worker:0.0.11
+    image: 192.168.99.126:5000/cis-worker:0.0.14
+    args: ["4.1.1", "4.1.2", "4.1.5", "4.1.5", "4.1.6", "4.1.9", "4.1.10"]
     imagePullPolicy: IfNotPresent
     lifecycle:
       preStop:
         exec:
-          command: ["/src/restore"]
+          command: ["/src/main", "-r"]
     volumeMounts:
     - mountPath: "/config/10-kubeadm.conf"
       name: kubelet-service

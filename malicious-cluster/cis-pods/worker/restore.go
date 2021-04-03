@@ -2,25 +2,39 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
-	"os/exec"
+	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
-func main() {
-	fmt.Println("restoring")
-	err := restoreFiles()
-
+func restoreFiles() error {
+	s, err := readFiles("./restore.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
+	for _, str := range *s {
+		n := strings.Split(str, "/")
+		err = copyNative("./backups/"+n[len(n)-1], str)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return nil
 }
 
-func restoreFiles() error {
-	err := copyNative("./backups/10-kubeadm.conf", "/config/10-kubeadm.conf")
-	return err
-}
+func readFiles(filename string) (*[]string, error) {
+	buf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 
-func copyNative(src, dst string) error {
-	cmd := exec.Command("cp", "-rp", src, dst)
-	return cmd.Run()
+	var c []string
+	err = yaml.Unmarshal(buf, &c)
+	if err != nil {
+		return nil, fmt.Errorf("in file %q: %v", filename, err)
+	}
+
+	return &c, nil
 }
