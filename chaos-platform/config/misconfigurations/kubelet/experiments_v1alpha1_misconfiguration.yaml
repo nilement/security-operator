@@ -1,0 +1,14 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: Misconfiguration
+metadata:
+  name: kubelet-debug-mode
+spec:
+  completions: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: kubelet-job
+            image: 192.168.99.126:5000/kubelet-job:latest
+          restartPolicy: Never 

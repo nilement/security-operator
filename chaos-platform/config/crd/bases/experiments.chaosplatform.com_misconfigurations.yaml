@@ -105,7 +105,7 @@ spec:
                 type: integer
               jobTemplate:
                 description: Specifies the job that will be created when executing
-                  a CronJob.
+                  a Job.
                 properties:
                   metadata:
                     description: 'Standard object''s metadata of the jobs created
@@ -7133,17 +7133,20 @@ spec:
                     - template
                     type: object
                 type: object
-              lastScheduleTime:
-                description: Information when was the last time a misconfiguration
-                  was successfully applied.
-                format: date-time
-                type: string
             required:
             - completions
             - jobTemplate
             type: object
           status:
             description: MisconfigurationStatus defines the observed state of Misconfiguration
+            properties:
+              lastMisconfiguration:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file Information when was the last time a misconfiguration
+                  was successfully applied.'
+                format: date-time
+                type: string
             type: object
         type: object
     served: true

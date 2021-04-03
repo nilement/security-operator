@@ -34,11 +34,7 @@ type MisconfigurationSpec struct {
 	// +optional
 	Active []corev1.ObjectReference `json:"active,omitempty"`
 
-	// Information when was the last time a misconfiguration was successfully applied.
-	// +optional
-	LastMisconfiguration *metav1.Time `json:"lastScheduleTime,omitempty"`
-
-	// Specifies the job that will be created when executing a CronJob.
+	// Specifies the job that will be created when executing a Job.
 	JobTemplate batchv1beta1.JobTemplateSpec `json:"jobTemplate"`
 
 	// Specifies how many times it should be applied
@@ -49,6 +45,9 @@ type MisconfigurationSpec struct {
 type MisconfigurationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	// Information when was the last time a misconfiguration was successfully applied.
+	// +optional
+	LastMisconfiguration *metav1.Time `json:"lastMisconfiguration,omitempty"`
 }
 
 // +kubebuilder:object:root=true

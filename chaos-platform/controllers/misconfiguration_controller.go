@@ -72,7 +72,7 @@ func (r *MisconfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	var jobs batchv1.JobList
 
-	err = r.List(ctx, &jobs, client.InNamespace(req.Namespace))
+	err = r.List(ctx, &jobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerMisconfigKey: req.Name})
 	if err != nil {
 		log.Error(err, "Unable to list jobs")
 		return ctrl.Result{}, err
@@ -97,11 +97,9 @@ func (r *MisconfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	completions := len(activeJobs) + len(successfulJobs)
 
-	log.Info("Active and successful jobs: ", "activeJobs", string(len(activeJobs)), "successfulJobs", string(len(successfulJobs)))
-
-	if int64(completions) < *misconfiguration.Spec.Completions {
-		job := r.constructJobForCISMisconfig(misconfiguration)
-		log.Info("Applying CIS 4.1.1 misconfiguration", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+	if completions < 1 {
+		job := r.constructJobForKubeletMisconfig(misconfiguration)
+		log.Info("Applying Kubelet debug mode", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
 		err = r.Create(ctx, job)
 		if err != nil {
 			log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
@@ -114,33 +112,50 @@ func (r *MisconfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
+var jobOwnerMisconfigKey = ".metadata.misconfig.controller"
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *MisconfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchv1.Job{}, jobOwnerMisconfigKey, func(rawObj client.Object) []string {
+		// grab the job object, extract the owner...
+		job := rawObj.(*batchv1.Job)
+		owner := metav1.GetControllerOf(job)
+		if owner == nil {
+			return nil
+		}
+		// ...make sure it's a Misconfiguration...
+		if owner.APIVersion != apiGVStr || owner.Kind != "Misconfiguration" {
+			return nil
+		}
+
+		// ...and if so, return it
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&experimentsv1alpha1.Misconfiguration{}).
 		Owns(&batchv1.Job{}).
 		Complete(r)
 }
 
-func (r *MisconfigurationReconciler) constructJobForCISMisconfig(e *experimentsv1alpha1.Misconfiguration) *batchv1.Job {
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "cis-4.1.1-",
-			Namespace:    e.Namespace,
-		},
-		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
-	}
-	ctrl.SetControllerReference(e, job, r.Scheme)
-	return job
-}
-
 func (r *MisconfigurationReconciler) constructJobForKubeletMisconfig(e *experimentsv1alpha1.Misconfiguration) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
+			Labels:       make(map[string]string),
+			Annotations:  make(map[string]string),
 			GenerateName: "khv-046-",
 			Namespace:    e.Namespace,
 		},
 		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
+	}
+	for k, v := range e.Spec.JobTemplate.Annotations {
+		job.Annotations[k] = v
+	}
+	for k, v := range e.Spec.JobTemplate.Labels {
+		job.Labels[k] = v
 	}
 	ctrl.SetControllerReference(e, job, r.Scheme)
 	return job
