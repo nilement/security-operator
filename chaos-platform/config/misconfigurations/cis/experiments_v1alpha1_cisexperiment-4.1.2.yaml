@@ -1,0 +1,22 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: CisExperiment
+metadata:
+  name: cisexperiment-4.1.2
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: bash-job
+              image: bash:latest
+              volumeMounts:
+                  - mountPath: "/config/10-kubeadm.conf"
+                    name: config-mount
+              command: ["/bin/bash","-c","useradd malicious && chown malicious:malicious /config/10-kubeadm.conf"]
+          restartPolicy: Never 
+          volumes:
+              - name: config-mount
+                hostPath:
+                    path: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+                    type: File

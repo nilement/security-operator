@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cis-worker
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+  - name: cis-worker
+    image: 192.168.99.126:5000/cis-worker:0.0.14
+    args: ["4.1.1, 4.1.2"]
+    imagePullPolicy: IfNotPresent
+    lifecycle:
+      preStop:
+        exec:
+          command: ["/src/restore"]
+    volumeMounts:
+    - mountPath: "/config/10-kubeadm.conf"
+      name: kubelet-service
+    - mountPath: "/config/kubelet.conf"
+      name: kubelet-kubeconf
+    - mountPath: "/config/config.yaml"
+      name: kubelet-conf
+    resources:
+      limits:
+        cpu: "0.2"
+        memory: "100Mi"
+  volumes:
+      - name: kubelet-service
+        hostPath:
+            path: "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+            type: File
+      - name: kubelet-kubeconf
+        hostPath:
+            path: "/etc/kubernetes/kubelet.conf"
+            type: File
+      - name: kubelet-conf
+        hostPath:
+            path: "/var/lib/kubelet/config.yaml"
+            type: File

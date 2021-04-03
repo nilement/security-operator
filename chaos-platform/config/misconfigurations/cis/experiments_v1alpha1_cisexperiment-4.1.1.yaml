@@ -1,9 +1,8 @@
 apiVersion: experiments.chaosplatform.com/v1alpha1
-kind: Misconfiguration
+kind: CisExperiment
 metadata:
-  name: misconfiguration-sample
+  name: cisexperiment-4.1.1
 spec:
-  completions: 5
   jobTemplate:
     spec:
       template:
