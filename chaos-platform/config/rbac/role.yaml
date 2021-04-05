@@ -61,6 +61,32 @@ rules:
 - apiGroups:
   - experiments.chaosplatform.com
   resources:
+  - cispersistents
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - cispersistents/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - cispersistents/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
   - dos
   verbs:
   - create
@@ -106,6 +132,32 @@ rules:
   - experiments.chaosplatform.com
   resources:
   - misconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - validations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - validations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - validations/status
   verbs:
   - get
   - patch

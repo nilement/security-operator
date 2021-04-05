@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: cisexperiments.experiments.chaosplatform.com
+  name: validations.experiments.chaosplatform.com
 spec:
   group: experiments.chaosplatform.com
   names:
-    kind: CisExperiment
-    listKind: CisExperimentList
-    plural: cisexperiments
-    singular: cisexperiment
+    kind: Validation
+    listKind: ValidationList
+    plural: validations
+    singular: validation
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: CisExperiment is the Schema for the cisexperiments API
+        description: Validation is the Schema for the validations API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,11 +34,15 @@ spec:
           metadata:
             type: object
           spec:
-            description: CisExperimentSpec defines the desired state of CisExperiment
+            description: ValidationSpec defines the desired state of Validation
             properties:
+              experimentsToTrigger:
+                description: Specifies the amount of experiments that need to be done
+                  to trigger
+                type: integer
               jobTemplate:
                 description: Specifies the job that will be created when executing
-                  a CisExperiment.
+                  a Job.
                 properties:
                   metadata:
                     description: 'Standard object''s metadata of the jobs created
@@ -7067,10 +7071,28 @@ spec:
                     type: object
                 type: object
             required:
+            - experimentsToTrigger
             - jobTemplate
             type: object
           status:
-            description: CisExperimentStatus defines the observed state of CisExperiment
+            description: ValidationStatus defines the observed state of Validation
+            properties:
+              lastExperimentCount:
+                type: integer
+              lastJob:
+                format: date-time
+                type: string
+              lastPod:
+                format: date-time
+                type: string
+              lastScheduleTime:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                format: date-time
+                type: string
+            required:
+            - lastExperimentCount
             type: object
         type: object
     served: true

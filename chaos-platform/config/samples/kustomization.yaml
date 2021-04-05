@@ -3,4 +3,6 @@ resources:
 - experiments_v1alpha1_cisexperiment.yaml
 - experiments_v1alpha1_misconfiguration.yaml
 - experiments_v1alpha1_dos.yaml
+- experiments_v1alpha1_validation.yaml
+- experiments_v1alpha1_cispersistent.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

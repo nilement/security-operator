@@ -17,49 +17,47 @@ limitations under the License.
 package v1alpha1
 
 import (
-	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// CisExperimentSpec defines the desired state of CisExperiment
-type CisExperimentSpec struct {
+// CisPersistentSpec defines the desired state of CisPersistent
+type CisPersistentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	// Specifies the job that will be created when executing a CisExperiment.
-	JobTemplate batchv1beta1.JobTemplateSpec `json:"jobTemplate"`
+	WorkerConfigurations []string       `json:"workerConfigurations"`
+	PodTemplate          corev1.PodSpec `json:"podTemplate"`
 }
 
-// CisExperimentStatus defines the observed state of CisExperiment
-type CisExperimentStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+// CisPersistentStatus defines the observed state of CisPersistent
+type CisPersistentStatus struct {
+	AppliedConfigurations []string `json:"appliedConfigurations"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// CisExperiment is the Schema for the cisexperiments API
-type CisExperiment struct {
+// CisPersistent is the Schema for the cispersistents API
+type CisPersistent struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   CisExperimentSpec   `json:"spec,omitempty"`
-	Status CisExperimentStatus `json:"status,omitempty"`
+	Spec   CisPersistentSpec   `json:"spec,omitempty"`
+	Status CisPersistentStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// CisExperimentList contains a list of CisExperiment
-type CisExperimentList struct {
+// CisPersistentList contains a list of CisPersistent
+type CisPersistentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []CisExperiment `json:"items"`
+	Items           []CisPersistent `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&CisExperiment{}, &CisExperimentList{})
+	SchemeBuilder.Register(&CisPersistent{}, &CisPersistentList{})
 }

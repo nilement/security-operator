@@ -72,8 +72,7 @@ func (r *CisExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	var jobs batchv1.JobList
 
-	misconfiguration := &experimentsv1alpha1.Misconfiguration{}
-	err = r.List(ctx, &jobs, client.InNamespace(misconfiguration.Namespace))
+	err = r.List(ctx, &jobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerCisKey: req.Name})
 	if err != nil {
 		log.Error(err, "Unable to list jobs")
 		return ctrl.Result{}, err
@@ -97,9 +96,9 @@ func (r *CisExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	completions := len(activeJobs) + len(successfulJobs)
 
-	if completions == 3 {
-		job := r.jobForKubeBench(cisExperiment)
-		log.Info("Creating a new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+	if int64(completions) < 1 {
+		job := r.constructJobForCISMisconfig(cisExperiment)
+		log.Info("Applying CIS 4.1.1 misconfiguration", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
 		err = r.Create(ctx, job)
 		if err != nil {
 			log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
@@ -112,26 +111,24 @@ func (r *CisExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
-func (r *CisExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&experimentsv1alpha1.CisExperiment{}).
-		Owns(&batchv1.Job{}).
-		Complete(r)
-}
-
-func labelsForKubeBench(name string) map[string]string {
-	return map[string]string{"app": "cisexperiment-sample", "cisexperiment-sample_cr": name}
-}
-
-func (r *CisExperimentReconciler) jobForKubeBench(e *experimentsv1alpha1.CisExperiment) *batchv1.Job {
+func (r *CisExperimentReconciler) constructJobForCISMisconfig(e *experimentsv1alpha1.CisExperiment) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "kube-bench-",
+			Labels:       make(map[string]string),
+			Annotations:  make(map[string]string),
+			GenerateName: "cis-4.1.1-",
 			Namespace:    e.Namespace,
 		},
 		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
 	}
+	for k, v := range e.Spec.JobTemplate.ObjectMeta.Annotations {
+		job.Annotations[k] = v
+	}
+	for k, v := range e.Spec.JobTemplate.ObjectMeta.Labels {
+		job.Labels[k] = v
+	}
+	job.Labels["SecurityChaos"] = "experiment"
+
 	ctrl.SetControllerReference(e, job, r.Scheme)
 	return job
 }
@@ -144,4 +141,36 @@ func (r *CisExperimentReconciler) isJobFinished(job *batchv1.Job) (bool, batchv1
 	}
 
 	return false, ""
+}
+
+var (
+	jobOwnerCisKey = ".metadata.cis.controller"
+	apiGVStr       = "experiments.chaosplatform.com/v1alpha1"
+)
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *CisExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchv1.Job{}, jobOwnerCisKey, func(rawObj client.Object) []string {
+		// grab the job object, extract the owner...
+		job := rawObj.(*batchv1.Job)
+		owner := metav1.GetControllerOf(job)
+		if owner == nil {
+			return nil
+		}
+		// ...make sure it's a CisExperiment...
+		if owner.APIVersion != apiGVStr || owner.Kind != "CisExperiment" {
+			return nil
+		}
+
+		// ...and if so, return it
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
+
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&experimentsv1alpha1.CisExperiment{}).
+		Owns(&batchv1.Job{}).
+		Complete(r)
 }

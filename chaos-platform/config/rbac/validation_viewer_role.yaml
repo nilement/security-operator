@@ -1,0 +1,20 @@
+# permissions for end users to view validations.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: validation-viewer-role
+rules:
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - validations
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - validations/status
+  verbs:
+  - get
