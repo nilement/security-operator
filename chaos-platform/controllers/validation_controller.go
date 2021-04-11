@@ -66,6 +66,8 @@ func ReconcileValidator() {
 }
 
 func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// var node corev1.Node
+
 	validators := &experimentsv1alpha1.ValidationList{}
 	err := r.List(ctx, validators, client.InNamespace(req.Namespace), client.MatchingLabels{"securitychaos": "validation"})
 	log := r.Log.WithValues("validation", req.NamespacedName)
@@ -124,6 +126,7 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	newJobs := 0
 	var latest metav1.Time
 	var latestJob metav1.Time
+	nodes := make(map[string]bool)
 	for _, validator := range validators.Items {
 		for _, job := range successfulJobs {
 			if job.Status.CompletionTime.After(validator.Status.LastJob.Time) {
@@ -138,6 +141,7 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 		for _, pod := range pods.Items {
 			if pod.CreationTimestamp.After(validator.Status.LastPod.Time) {
+				nodes[pod.Spec.NodeName] = true
 				newPods++
 				if pod.CreationTimestamp.After(latest.Time) {
 					latest = pod.CreationTimestamp
@@ -150,12 +154,14 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		completions := newPods + newJobs
 
 		if completions >= validator.Spec.ExperimentsToTrigger {
-			job := r.jobForKubeBench(&validator)
-			log.Info("Creating a new validation Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-			err = r.Create(ctx, job)
-			if err != nil {
-				log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-				return ctrl.Result{RequeueAfter: 5}, err
+			for nd := range nodes {
+				job := r.jobForKubeBench(&validator, nd)
+				log.Info("Creating a new validation Job on Node:", "Job.Namespace", job.Namespace, "Job.Name", job.Name, "Node.Name", nd)
+				err = r.Create(ctx, job)
+				if err != nil {
+					log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+					return ctrl.Result{RequeueAfter: 5}, err
+				}
 			}
 		}
 
@@ -194,7 +200,7 @@ func (r *ValidationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ValidationReconciler) jobForKubeBench(e *experimentsv1alpha1.Validation) *batchv1.Job {
+func (r *ValidationReconciler) jobForKubeBench(e *experimentsv1alpha1.Validation, node string) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:       make(map[string]string),
@@ -210,6 +216,7 @@ func (r *ValidationReconciler) jobForKubeBench(e *experimentsv1alpha1.Validation
 	for k, v := range e.Spec.JobTemplate.Labels {
 		job.Labels[k] = v
 	}
+	job.Spec.Template.Spec.NodeName = node
 	ctrl.SetControllerReference(e, job, r.Scheme)
 	return job
 }

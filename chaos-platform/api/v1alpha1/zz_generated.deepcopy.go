@@ -276,6 +276,11 @@ func (in *CisPersistentSpec) DeepCopyInto(out *CisPersistentSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.MasterConfigurations != nil {
+		in, out := &in.MasterConfigurations, &out.MasterConfigurations
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 }
 
@@ -471,11 +476,11 @@ func (in *MisconfigurationSpec) DeepCopyInto(out *MisconfigurationSpec) {
 		*out = make([]v1.ObjectReference, len(*in))
 		copy(*out, *in)
 	}
-	in.JobTemplate.DeepCopyInto(&out.JobTemplate)
-	if in.Completions != nil {
-		in, out := &in.Completions, &out.Completions
-		*out = new(int64)
-		**out = **in
+	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
+	if in.KubeletMisconfigurations != nil {
+		in, out := &in.KubeletMisconfigurations, &out.KubeletMisconfigurations
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 }
 

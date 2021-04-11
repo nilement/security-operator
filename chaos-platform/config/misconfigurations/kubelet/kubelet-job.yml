@@ -10,5 +10,5 @@ spec:
     spec:
       containers:
         - name: kubelet-job
-          image: 192.168.99.124:5000/kubelet-job:latest
+          image: 192.168.99.126:5000/kubelet-job:latest
       restartPolicy: Never 

@@ -153,7 +153,7 @@ func (r *DoSReconciler) deploymentForDostainer(m *experimentsv1alpha1.DoS) *apps
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: ls,
 				},
-				Spec: *&m.Spec.PodSpec,
+				Spec: *m.Spec.PodSpec.DeepCopy(),
 			},
 		},
 	}

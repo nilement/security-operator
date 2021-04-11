@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -34,11 +33,13 @@ type MisconfigurationSpec struct {
 	// +optional
 	Active []corev1.ObjectReference `json:"active,omitempty"`
 
-	// Specifies the job that will be created when executing a Job.
-	JobTemplate batchv1beta1.JobTemplateSpec `json:"jobTemplate"`
+	// Specifies the pod that will be created when executing the experiment.
+	// +optional
+	PodTemplate corev1.PodSpec `json:"podTemplate"`
 
-	// Specifies how many times it should be applied
-	Completions *int64 `json:"completions"`
+	//Specifies misconfigurations to apply to Kubelet
+	// +optional
+	KubeletMisconfigurations []string `json:"kubeletMisconfigurations"`
 }
 
 // MisconfigurationStatus defines the observed state of Misconfiguration

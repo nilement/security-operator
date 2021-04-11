@@ -1,0 +1,6 @@
+debugging:
+  key: enableDebuggingHandlers
+  value: true
+anonymous-auth:
+  key: authentication.anonymous.enabled
+  value: true

@@ -38,7 +38,6 @@ func main() {
 	var rFlag = flag.Bool("r", false, "restore")
 	flag.Parse()
 	if *rFlag {
-		fmt.Println("restoring")
 		err = restoreFiles()
 		if err != nil {
 			log.Fatal(err)
@@ -53,8 +52,6 @@ func main() {
 		exps[e.Key] = p
 	}
 
-	fmt.Println("parsing args")
-
 	anyActive := false
 
 	backups := make(map[string]bool)
@@ -68,8 +65,6 @@ func main() {
 	if !anyActive {
 		log.Fatal("No experiments performed!")
 	}
-
-	fmt.Println("creating backups")
 
 	for k, _ := range backups {
 		err = backupFiles(k)
@@ -105,8 +100,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("sleeping")
-	time.Sleep(time.Hour)
+	for {
+		log.Println("Applied CIS Benchmark Worker node misconfigurations")
+		time.Sleep(time.Second * 30)
+	}
 }
 
 func backupFiles(file string) error {

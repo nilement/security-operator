@@ -23,6 +23,24 @@ experiments:
   - key: 1.1.8
     file: "/config/etcd.yaml"
     operation: "chown nobody"
+  - key: 1.1.13
+    file: "/config/admin.conf"
+    operation: "chmod 645"
+  - key: 1.1.14
+    file: "/config/admin.conf"
+    operation: "chown nobody"
+  - key: 1.1.15
+    file: "/config/scheduler.conf"
+    operation: "chmod 645"
+  - key: 1.1.16
+    file: "/config/scheduler.conf"
+    operation: "chown nobody"
+  - key: 1.1.17
+    file: "/config/controller-manager.conf"
+    operation: "chmod 645"
+  - key: 1.1.18
+    file: "/config/controller-manager.conf"
+    operation: "chown nobody"
   - key: 4.1.1
     file: "/config/10-kubeadm.conf"
     operation: "chmod 645"

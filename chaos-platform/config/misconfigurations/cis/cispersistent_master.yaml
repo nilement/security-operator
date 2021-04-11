@@ -1,0 +1,47 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: CisPersistent
+metadata:
+  name: cispersistent-master
+spec:
+  masterConfigurations: ["1.1.1", "1.1.2"]
+  podTemplate:
+    nodeName: "minikube"
+    restartPolicy: Never
+    containers:
+    - name: cis-worker
+      image: 192.168.99.126:5000/cis-worker:0.0.15
+      imagePullPolicy: IfNotPresent
+      lifecycle:
+        preStop:
+          exec:
+            command: ["/src/main", "-r"]
+      volumeMounts:
+      - mountPath: "/config/kube-apiserver.yaml"
+        name: kube-apiserver
+      - mountPath: "/config/kube-controller-manager.yaml"
+        name: kube-controller-manager
+      - mountPath: "/config/kube-scheduler.yaml"
+        name: kube-scheduler
+      - mountPath: "/config/etcd.yaml"
+        name: etcd
+      resources:
+        limits:
+          cpu: "0.2"
+          memory: "100Mi"
+    volumes:
+      - name: kube-apiserver
+        hostPath:
+            path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+            type: File
+      - name: kube-controller-manager
+        hostPath:
+            path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+            type: File
+      - name: kube-scheduler
+        hostPath:
+            path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
+            type: File
+      - name: etcd
+        hostPath:
+            path: "/etc/kubernetes/manifests/etcd.yaml"
+            type: File

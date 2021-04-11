@@ -54,6 +54,7 @@ type CisPersistentReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *CisPersistentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// r.Client.Get(ctx, )
 	log := r.Log.WithValues("CisPersistent", req.NamespacedName)
 
 	persistent := &experimentsv1alpha1.CisPersistent{}
@@ -72,6 +73,7 @@ func (r *CisPersistentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	configurations := persistent.Spec.WorkerConfigurations
+	configurations = append(configurations, persistent.Spec.MasterConfigurations...)
 	found := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: persistent.Name, Namespace: persistent.Namespace}, found)
 
@@ -107,39 +109,6 @@ func (r *CisPersistentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		// Pod created successfully - return and requeue
 		return ctrl.Result{Requeue: true}, nil
 	}
-	// if *found.Spec.Replicas != count {
-	// 	found.Spec.Replicas = &count
-	// 	err = r.Update(ctx, found)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to update Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
-	// 		return ctrl.Result{}, err
-	// 	}
-
-	// 	log.Info("Updated replicas count", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
-	// 	// Spec updated - return and requeue
-	// 	return ctrl.Result{Requeue: true}, nil
-	// }
-
-	// podList := &corev1.PodList{}
-	// listOpts := []client.ListOption{
-	// 	client.InNamespace(dostainer.Namespace),
-	// 	client.MatchingLabels(labelsForDos(dostainer.Name)),
-	// }
-	// if err = r.List(ctx, podList, listOpts...); err != nil {
-	// 	log.Error(err, "Failed to list pods", "Dostainer.Namespace", dostainer.Namespace, "Dostainer.Name", dostainer.Name)
-	// 	return ctrl.Result{}, err
-	// }
-	// podNames := getPodNames(podList.Items)
-
-	// // Update status.Nodes if needed
-	// if !reflect.DeepEqual(podNames, dostainer.Status.Nodes) {
-	// 	dostainer.Status.Nodes = podNames
-	// 	err := r.Status().Update(ctx, dostainer)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to update Dostainer status")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// }
 
 	return ctrl.Result{}, nil
 }
@@ -162,8 +131,10 @@ func (r *CisPersistentReconciler) compareMisconfigurations(state []string, spec 
 }
 
 func (r *CisPersistentReconciler) constructPodForCISMisconfig(e *experimentsv1alpha1.CisPersistent) *corev1.Pod {
+	configs := e.Spec.WorkerConfigurations
+	configs = append(configs, e.Spec.MasterConfigurations...)
 	spec := *e.Spec.PodTemplate.DeepCopy()
-	spec.Containers[0].Args = e.Spec.WorkerConfigurations
+	spec.Containers[0].Args = configs
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      make(map[string]string),
@@ -173,7 +144,7 @@ func (r *CisPersistentReconciler) constructPodForCISMisconfig(e *experimentsv1al
 		},
 		Spec: spec,
 	}
-	pod.ObjectMeta.Annotations["cis"] = strings.Join(e.Spec.WorkerConfigurations, ";")
+	pod.ObjectMeta.Annotations["cis"] = strings.Join(configs, ";")
 	pod.ObjectMeta.Labels["SecurityChaos"] = "experiment"
 	ctrl.SetControllerReference(e, pod, r.Scheme)
 	return pod

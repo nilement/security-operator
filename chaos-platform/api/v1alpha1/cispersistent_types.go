@@ -28,7 +28,8 @@ import (
 type CisPersistentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	WorkerConfigurations []string       `json:"workerConfigurations"`
+	WorkerConfigurations []string       `json:"workerConfigurations,omitempty"`
+	MasterConfigurations []string       `json:"masterConfigurations,omitempty"`
 	PodTemplate          corev1.PodSpec `json:"podTemplate"`
 }
 

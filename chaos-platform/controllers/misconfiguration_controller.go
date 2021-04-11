@@ -18,7 +18,8 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
@@ -26,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -53,7 +55,7 @@ type MisconfigurationReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *MisconfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("misconfiguration", req.NamespacedName)
+	log := r.Log.WithValues("Misconfiguration", req.NamespacedName)
 
 	misconfiguration := &experimentsv1alpha1.Misconfiguration{}
 	err := r.Get(ctx, req.NamespacedName, misconfiguration)
@@ -70,46 +72,103 @@ func (r *MisconfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	var jobs batchv1.JobList
+	found := &corev1.Pod{}
+	err = r.Get(ctx, types.NamespacedName{Name: misconfiguration.Name, Namespace: misconfiguration.Namespace}, found)
 
-	err = r.List(ctx, &jobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerMisconfigKey: req.Name})
-	if err != nil {
-		log.Error(err, "Unable to list jobs")
+	misconfigurations := misconfiguration.Spec.KubeletMisconfigurations
+
+	if err != nil && errors.IsNotFound(err) {
+		if len(misconfigurations) > 0 {
+			pod := r.constructPodForKubeletMisconfig(misconfiguration)
+			log.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
+			err = r.Create(ctx, pod)
+			if err != nil {
+				log.Error(err, "Failed to create new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
+				return ctrl.Result{}, err
+			}
+			// Pod created successfully - return and requeue
+			return ctrl.Result{Requeue: true}, nil
+		}
+	} else if err != nil {
+		log.Error(err, "Failed to get the Pod")
 		return ctrl.Result{}, err
 	}
 
-	// find the active list of jobs
-	var activeJobs []*batchv1.Job
-	var successfulJobs []*batchv1.Job
-	var failedJobs []*batchv1.Job
-
-	for i, job := range jobs.Items {
-		_, finishedType := r.isJobFinished(&job)
-		switch finishedType {
-		case "": // ongoing
-			activeJobs = append(activeJobs, &jobs.Items[i])
-		case batchv1.JobFailed:
-			failedJobs = append(failedJobs, &jobs.Items[i])
-		case batchv1.JobComplete:
-			successfulJobs = append(successfulJobs, &jobs.Items[i])
-		}
+	if !found.DeletionTimestamp.IsZero() {
+		log.Info("Pod is being deleted", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
 	}
 
-	completions := len(activeJobs) + len(successfulJobs)
-
-	if completions < 1 {
-		job := r.constructJobForKubeletMisconfig(misconfiguration)
-		log.Info("Applying Kubelet debug mode", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-		err = r.Create(ctx, job)
+	if !r.compareKubeletMisconfigurations(misconfigurations, found.Annotations) {
+		log.Info("Delete old Pod due to new Kubelet misconfigs", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+		err = r.Delete(ctx, found)
 		if err != nil {
-			log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-			return ctrl.Result{RequeueAfter: 5}, err
+			log.Error(err, "Failed to delete the old Pod", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+			return ctrl.Result{}, err
 		}
+		// Pod created successfully - return and requeue
+		return ctrl.Result{Requeue: true}, nil
 	}
-
-	fmt.Println("Misconfiguration controller is running")
 
 	return ctrl.Result{}, nil
+
+	// var jobs batchv1.JobList
+
+	// err = r.List(ctx, &jobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerMisconfigKey: req.Name})
+	// if err != nil {
+	// 	log.Error(err, "Unable to list jobs")
+	// 	return ctrl.Result{}, err
+	// }
+
+	// // find the active list of jobs
+	// var activeJobs []*batchv1.Job
+	// var successfulJobs []*batchv1.Job
+	// var failedJobs []*batchv1.Job
+
+	// for i, job := range jobs.Items {
+	// 	_, finishedType := r.isJobFinished(&job)
+	// 	switch finishedType {
+	// 	case "": // ongoing
+	// 		activeJobs = append(activeJobs, &jobs.Items[i])
+	// 	case batchv1.JobFailed:
+	// 		failedJobs = append(failedJobs, &jobs.Items[i])
+	// 	case batchv1.JobComplete:
+	// 		successfulJobs = append(successfulJobs, &jobs.Items[i])
+	// 	}
+	// }
+
+	// completions := len(activeJobs) + len(successfulJobs)
+
+	// if completions < 1 {
+	// 	job := r.constructJobForKubeletMisconfig(misconfiguration)
+	// 	log.Info("Applying Kubelet debug mode", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+	// 	err = r.Create(ctx, job)
+	// 	if err != nil {
+	// 		log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+	// 		return ctrl.Result{RequeueAfter: 5}, err
+	// 	}
+	// }
+
+	// fmt.Println("Misconfiguration controller is running")
+
+	// return ctrl.Result{}, nil
+}
+
+func (r *MisconfigurationReconciler) compareKubeletMisconfigurations(state []string, spec map[string]string) bool {
+	annotations := spec["kubelet"]
+	if len(state) == 0 && annotations == "" {
+		return true
+	}
+	experiments := strings.Split(annotations, ";")
+	if len(state) != len(experiments) {
+		return false
+	}
+	for idx, _ := range experiments {
+		if experiments[idx] != state[idx] {
+			return false
+		}
+	}
+	return true
 }
 
 var jobOwnerMisconfigKey = ".metadata.misconfig.controller"
@@ -137,29 +196,46 @@ func (r *MisconfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&experimentsv1alpha1.Misconfiguration{}).
-		Owns(&batchv1.Job{}).
+		Owns(&corev1.Pod{}).
 		Complete(r)
 }
 
-func (r *MisconfigurationReconciler) constructJobForKubeletMisconfig(e *experimentsv1alpha1.Misconfiguration) *batchv1.Job {
-	job := &batchv1.Job{
+func (r *MisconfigurationReconciler) constructPodForKubeletMisconfig(e *experimentsv1alpha1.Misconfiguration) *corev1.Pod {
+	spec := *e.Spec.PodTemplate.DeepCopy()
+	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:       make(map[string]string),
-			Annotations:  make(map[string]string),
-			GenerateName: "khv-046-",
-			Namespace:    e.Namespace,
+			Labels:      make(map[string]string),
+			Annotations: make(map[string]string),
+			Name:        e.Name,
+			Namespace:   e.Namespace,
 		},
-		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
+		Spec: spec,
 	}
-	for k, v := range e.Spec.JobTemplate.Annotations {
-		job.Annotations[k] = v
-	}
-	for k, v := range e.Spec.JobTemplate.Labels {
-		job.Labels[k] = v
-	}
-	ctrl.SetControllerReference(e, job, r.Scheme)
-	return job
+	pod.ObjectMeta.Annotations["kubelet"] = strings.Join(e.Spec.KubeletMisconfigurations, ";")
+	pod.ObjectMeta.Labels["SecurityChaos"] = "experiment"
+	ctrl.SetControllerReference(e, pod, r.Scheme)
+	return pod
 }
+
+// func (r *MisconfigurationReconciler) constructJobForKubeletMisconfig(e *experimentsv1alpha1.Misconfiguration) *batchv1.Job {
+// 	job := &batchv1.Job{
+// 		ObjectMeta: metav1.ObjectMeta{
+// 			Labels:       make(map[string]string),
+// 			Annotations:  make(map[string]string),
+// 			GenerateName: "khv-046-",
+// 			Namespace:    e.Namespace,
+// 		},
+// 		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
+// 	}
+// 	for k, v := range e.Spec.JobTemplate.Annotations {
+// 		job.Annotations[k] = v
+// 	}
+// 	for k, v := range e.Spec.JobTemplate.Labels {
+// 		job.Labels[k] = v
+// 	}
+// 	ctrl.SetControllerReference(e, job, r.Scheme)
+// 	return job
+// }
 
 func (r *MisconfigurationReconciler) isJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {
 	for _, c := range job.Status.Conditions {

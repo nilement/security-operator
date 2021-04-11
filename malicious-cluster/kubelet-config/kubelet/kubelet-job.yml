@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubelet-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: kubelet-job
+    spec:
+      containers:
+        - name: kubelet-job
+          image: 192.168.99.126:5000/kubelet-job:latest
+      restartPolicy: Never 
