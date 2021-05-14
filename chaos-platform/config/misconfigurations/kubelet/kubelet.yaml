@@ -3,17 +3,23 @@ kind: Misconfiguration
 metadata:
   name: kubelet-debug-mode
 spec:
-  kubeletMisconfigurations:
+  kubeletMisconfigurations: ["event-record-qps", "anonymous-auth"]
   podTemplate:
     restartPolicy: Never
     containers:
     - name: kubelet-misconfiguration
-      image: 192.168.99.126:5000/kubelet-job:0.0.1
-      imagePullPolicy: IfNotPresent
+      image: 192.168.99.131:5000/kubelet-job
+      command: ["python3", "/src/main.py"]
+      imagePullPolicy: Always
+      readinessProbe:
+        exec:
+          command:
+          - cat
+          - /tmp/ready
       lifecycle:
         preStop:
           exec:
-            command: ["bash", "/home/kubelet-recovery.sh"]
+            command: ["python3", "/src/recovery.py"]
       resources:
         limits:
           cpu: "0.2"

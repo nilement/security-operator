@@ -111,47 +111,6 @@ func (r *MisconfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	return ctrl.Result{}, nil
-
-	// var jobs batchv1.JobList
-
-	// err = r.List(ctx, &jobs, client.InNamespace(req.Namespace), client.MatchingFields{jobOwnerMisconfigKey: req.Name})
-	// if err != nil {
-	// 	log.Error(err, "Unable to list jobs")
-	// 	return ctrl.Result{}, err
-	// }
-
-	// // find the active list of jobs
-	// var activeJobs []*batchv1.Job
-	// var successfulJobs []*batchv1.Job
-	// var failedJobs []*batchv1.Job
-
-	// for i, job := range jobs.Items {
-	// 	_, finishedType := r.isJobFinished(&job)
-	// 	switch finishedType {
-	// 	case "": // ongoing
-	// 		activeJobs = append(activeJobs, &jobs.Items[i])
-	// 	case batchv1.JobFailed:
-	// 		failedJobs = append(failedJobs, &jobs.Items[i])
-	// 	case batchv1.JobComplete:
-	// 		successfulJobs = append(successfulJobs, &jobs.Items[i])
-	// 	}
-	// }
-
-	// completions := len(activeJobs) + len(successfulJobs)
-
-	// if completions < 1 {
-	// 	job := r.constructJobForKubeletMisconfig(misconfiguration)
-	// 	log.Info("Applying Kubelet debug mode", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-	// 	err = r.Create(ctx, job)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-	// 		return ctrl.Result{RequeueAfter: 5}, err
-	// 	}
-	// }
-
-	// fmt.Println("Misconfiguration controller is running")
-
-	// return ctrl.Result{}, nil
 }
 
 func (r *MisconfigurationReconciler) compareKubeletMisconfigurations(state []string, spec map[string]string) bool {
@@ -163,7 +122,7 @@ func (r *MisconfigurationReconciler) compareKubeletMisconfigurations(state []str
 	if len(state) != len(experiments) {
 		return false
 	}
-	for idx, _ := range experiments {
+	for idx := range experiments {
 		if experiments[idx] != state[idx] {
 			return false
 		}
@@ -201,7 +160,11 @@ func (r *MisconfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *MisconfigurationReconciler) constructPodForKubeletMisconfig(e *experimentsv1alpha1.Misconfiguration) *corev1.Pod {
+	configs := e.Spec.KubeletMisconfigurations
+	configs = append(configs, e.Spec.KubeletMisconfigurations...)
 	spec := *e.Spec.PodTemplate.DeepCopy()
+	spec.Containers[0].Args = configs
+
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      make(map[string]string),
@@ -215,34 +178,4 @@ func (r *MisconfigurationReconciler) constructPodForKubeletMisconfig(e *experime
 	pod.ObjectMeta.Labels["SecurityChaos"] = "experiment"
 	ctrl.SetControllerReference(e, pod, r.Scheme)
 	return pod
-}
-
-// func (r *MisconfigurationReconciler) constructJobForKubeletMisconfig(e *experimentsv1alpha1.Misconfiguration) *batchv1.Job {
-// 	job := &batchv1.Job{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Labels:       make(map[string]string),
-// 			Annotations:  make(map[string]string),
-// 			GenerateName: "khv-046-",
-// 			Namespace:    e.Namespace,
-// 		},
-// 		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
-// 	}
-// 	for k, v := range e.Spec.JobTemplate.Annotations {
-// 		job.Annotations[k] = v
-// 	}
-// 	for k, v := range e.Spec.JobTemplate.Labels {
-// 		job.Labels[k] = v
-// 	}
-// 	ctrl.SetControllerReference(e, job, r.Scheme)
-// 	return job
-// }
-
-func (r *MisconfigurationReconciler) isJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {
-	for _, c := range job.Status.Conditions {
-		if (c.Type == batchv1.JobComplete || c.Type == batchv1.JobFailed) && c.Status == corev1.ConditionTrue {
-			return true, c.Type
-		}
-	}
-
-	return false, ""
 }

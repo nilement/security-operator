@@ -54,7 +54,6 @@ type CisPersistentReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *CisPersistentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// r.Client.Get(ctx, )
 	log := r.Log.WithValues("CisPersistent", req.NamespacedName)
 
 	persistent := &experimentsv1alpha1.CisPersistent{}
@@ -74,6 +73,7 @@ func (r *CisPersistentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	configurations := persistent.Spec.WorkerConfigurations
 	configurations = append(configurations, persistent.Spec.MasterConfigurations...)
+	configurations = append(configurations, persistent.Spec.ApiServerConfigurations...)
 	found := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{Name: persistent.Name, Namespace: persistent.Namespace}, found)
 
@@ -122,7 +122,7 @@ func (r *CisPersistentReconciler) compareMisconfigurations(state []string, spec 
 	if len(state) != len(experiments) {
 		return false
 	}
-	for idx, _ := range experiments {
+	for idx := range experiments {
 		if experiments[idx] != state[idx] {
 			return false
 		}
@@ -133,6 +133,7 @@ func (r *CisPersistentReconciler) compareMisconfigurations(state []string, spec 
 func (r *CisPersistentReconciler) constructPodForCISMisconfig(e *experimentsv1alpha1.CisPersistent) *corev1.Pod {
 	configs := e.Spec.WorkerConfigurations
 	configs = append(configs, e.Spec.MasterConfigurations...)
+	configs = append(configs, e.Spec.ApiServerConfigurations...)
 	spec := *e.Spec.PodTemplate.DeepCopy()
 	spec.Containers[0].Args = configs
 	pod := &corev1.Pod{

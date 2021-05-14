@@ -1,0 +1,19 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: Validation
+metadata:
+  labels:
+    securitychaos: "validation"
+  name: kube-hunter
+spec:
+  experimentsToTrigger: 1
+  jobTemplate:
+      spec:
+        template:
+          spec:
+            hostPID: true
+            restartPolicy: Never
+            containers:
+            - name: kube-hunter
+              image: aquasec/kube-hunter 
+              command: ["kube-hunter"]
+              args: ["--pod"]

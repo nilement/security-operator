@@ -2,21 +2,21 @@ apiVersion: rbac.authorization.k8s.io/v1
 # This cluster role binding allows anyone in the "manager" group to read secrets in any namespace.
 kind: ClusterRoleBinding
 metadata:
-  name: get-zz
+  name: configmap-editor
 subjects:
 - kind: ServiceAccount
   name: default # Name is case sensitive
   namespace: default
 roleRef:
   kind: ClusterRole
-  name: nodes-viewer
+  name: configmap-editor
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: nodes-viewer
+  name: configmap-editor
 rules:
 - apiGroups: [""] # "" indicates the core API group
-  resources: ["nodes"]
+  resources: ["configmaps"]
   verbs: ["get", "patch"]

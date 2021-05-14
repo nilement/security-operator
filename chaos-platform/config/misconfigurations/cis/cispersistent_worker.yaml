@@ -1,14 +1,14 @@
 apiVersion: experiments.chaosplatform.com/v1alpha1
 kind: CisPersistent
 metadata:
-  name: cispersistent-worker
+  name: cis-worker
 spec:
-  workerConfigurations: ["4.1.1", "4.1.2"]
+  workerConfigurations: []
   podTemplate:
     restartPolicy: Never
     containers:
     - name: cis-worker
-      image: 192.168.99.126:5000/cis-worker:0.0.15
+      image: 192.168.99.135:5000/cis-worker
       imagePullPolicy: IfNotPresent
       lifecycle:
         preStop:

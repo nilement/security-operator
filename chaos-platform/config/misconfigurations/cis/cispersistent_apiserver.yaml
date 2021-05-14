@@ -1,0 +1,37 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: CisPersistent
+metadata:
+  name: cis-apiserver
+spec:
+  apiServerConfigurations: ["1.2.6"]
+  podTemplate:
+    nodeName: "minikube"
+    hostPID: true
+    restartPolicy: Never
+    containers:
+    - name: apiserver-misconfiguration
+      image: 192.168.99.135:5000/apiserver-misconfiguration
+      imagePullPolicy: Always
+      lifecycle:
+        preStop:
+          exec:
+            command: ["/src/recovery.py"]
+      readinessProbe:
+        exec:
+          command:
+          - cat
+          - /tmp/ready
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumeMounts:
+      - mountPath: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+        name: kube-apiserver
+      resources:
+        limits:
+          cpu: "0.2"
+          memory: "100Mi"
+    volumes:
+      - name: kube-apiserver
+        hostPath:
+            path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+            type: File

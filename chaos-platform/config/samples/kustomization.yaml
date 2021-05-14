@@ -5,4 +5,5 @@ resources:
 - experiments_v1alpha1_dos.yaml
 - experiments_v1alpha1_validation.yaml
 - experiments_v1alpha1_cispersistent.yaml
+- experiments_v1alpha1_pentesting.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

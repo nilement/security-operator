@@ -139,6 +139,32 @@ rules:
 - apiGroups:
   - experiments.chaosplatform.com
   resources:
+  - pentestings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - pentestings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - pentestings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
   - validations
   verbs:
   - create

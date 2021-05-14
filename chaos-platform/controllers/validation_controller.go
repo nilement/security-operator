@@ -23,7 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	errorsv1 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -77,7 +77,7 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if errorsv1.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
@@ -141,21 +141,32 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 		for _, pod := range pods.Items {
 			if pod.CreationTimestamp.After(validator.Status.LastPod.Time) {
-				nodes[pod.Spec.NodeName] = true
-				newPods++
-				if pod.CreationTimestamp.After(latest.Time) {
-					latest = pod.CreationTimestamp
+				if len(pod.Status.Conditions) > 0 {
+					readyCondition, ok := getReadyCondition(pod.Status.Conditions)
+
+					if ok && readyCondition.Status == corev1.ConditionTrue {
+						nodes[pod.Spec.NodeName] = true
+						newPods++
+						if pod.CreationTimestamp.After(latest.Time) {
+							latest = pod.CreationTimestamp
+						}
+					}
 				}
 			}
 		}
 		if newPods > 0 {
 			validator.Status.LastPod = latest
+			err = r.Status().Update(ctx, &validator)
+			if err != nil {
+				log.Error(err, "Failed to update Validation status")
+				return ctrl.Result{}, err
+			}
 		}
 		completions := newPods + newJobs
 
 		if completions >= validator.Spec.ExperimentsToTrigger {
 			for nd := range nodes {
-				job := r.jobForKubeBench(&validator, nd)
+				job := r.jobForValidator(&validator, nd)
 				log.Info("Creating a new validation Job on Node:", "Job.Namespace", job.Namespace, "Job.Name", job.Name, "Node.Name", nd)
 				err = r.Create(ctx, job)
 				if err != nil {
@@ -165,11 +176,6 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			}
 		}
 
-		err = r.Status().Update(ctx, &validator)
-		if err != nil {
-			log.Error(err, "Failed to update Validation status")
-			return ctrl.Result{}, err
-		}
 	}
 
 	fmt.Println("Validation controller is running")
@@ -200,12 +206,12 @@ func (r *ValidationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ValidationReconciler) jobForKubeBench(e *experimentsv1alpha1.Validation, node string) *batchv1.Job {
+func (r *ValidationReconciler) jobForValidator(e *experimentsv1alpha1.Validation, node string) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:       make(map[string]string),
 			Annotations:  make(map[string]string),
-			GenerateName: "kube-bench-",
+			GenerateName: e.GetObjectMeta().GetName() + "-",
 			Namespace:    e.Namespace,
 		},
 		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
@@ -221,24 +227,13 @@ func (r *ValidationReconciler) jobForKubeBench(e *experimentsv1alpha1.Validation
 	return job
 }
 
-func (r *ValidationReconciler) jobForKubeHunter(e *experimentsv1alpha1.Validation) *batchv1.Job {
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Labels:       make(map[string]string),
-			Annotations:  make(map[string]string),
-			GenerateName: "kube-hunter-",
-			Namespace:    e.Namespace,
-		},
-		Spec: *e.Spec.JobTemplate.Spec.DeepCopy(),
+func getReadyCondition(conditions []corev1.PodCondition) (*corev1.PodCondition, bool) {
+	for _, c := range conditions {
+		if c.Type == corev1.PodReady {
+			return &c, true
+		}
 	}
-	for k, v := range e.Spec.JobTemplate.Annotations {
-		job.Annotations[k] = v
-	}
-	for k, v := range e.Spec.JobTemplate.Labels {
-		job.Labels[k] = v
-	}
-	ctrl.SetControllerReference(e, job, r.Scheme)
-	return job
+	return nil, false
 }
 
 func (r *ValidationReconciler) isJobFinished(job *batchv1.Job) (bool, batchv1.JobConditionType) {

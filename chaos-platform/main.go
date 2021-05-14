@@ -119,6 +119,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "CisPersistent")
 		os.Exit(1)
 	}
+	if err = (&controllers.PentestingReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Pentesting"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Pentesting")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {

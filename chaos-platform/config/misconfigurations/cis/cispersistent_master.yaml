@@ -1,20 +1,27 @@
 apiVersion: experiments.chaosplatform.com/v1alpha1
 kind: CisPersistent
 metadata:
-  name: cispersistent-master
+  name: cis-master
 spec:
-  masterConfigurations: ["1.1.1", "1.1.2"]
+  masterConfigurations: ["1.1.1", "1.1.2", "1.1.3"]
   podTemplate:
     nodeName: "minikube"
     restartPolicy: Never
     containers:
     - name: cis-worker
-      image: 192.168.99.126:5000/cis-worker:0.0.15
+      image: 192.168.99.131:5000/cis-worker
       imagePullPolicy: IfNotPresent
       lifecycle:
         preStop:
           exec:
             command: ["/src/main", "-r"]
+      readinessProbe:
+        exec:
+          command:
+          - cat
+          - /tmp/ready
+        initialDelaySeconds: 5
+        periodSeconds: 5
       volumeMounts:
       - mountPath: "/config/kube-apiserver.yaml"
         name: kube-apiserver

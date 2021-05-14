@@ -30,7 +30,7 @@
   },
   "registryPullQPS": 5,
   "registryBurst": 10,
-  "eventRecordQPS": 5,
+  "eventRecordQPS": 1,
   "eventBurst": 10,
   "enableDebuggingHandlers": true,
   "healthzPort": 10248,
