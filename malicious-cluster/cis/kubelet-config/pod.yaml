@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubelet-misconfiguration
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+  - name: kubelet-misconfiguration
+    image: 192.168.99.131:5000/kubelet-job
+    command: ["python3", "/src/main.py"]
+    args: ["event-record-qps"]
+    imagePullPolicy: Always
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/ready
+    lifecycle:
+      preStop:
+        exec:
+          command: ["python3", "/src/recovery.py"]
+    resources:
+      limits:
+        cpu: "0.2"
+        memory: "100Mi"

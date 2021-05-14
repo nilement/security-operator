@@ -1,0 +1,23 @@
+FROM ubuntu:20.04
+
+ARG XMRIG_VERSION='v6.12.1'
+RUN  apt-get update
+RUN  DEBIAN_FRONTEND="noninteractive" apt-get install git wget build-essential cmake libuv1-dev libssl-dev libhwloc-dev -y
+
+RUN apt install tor -y
+
+RUN wget http://ftp.barfooze.de/pub/sabotage/tarballs/proxychains-ng-4.14.tar.xz \
+    && tar Jxf proxychains-ng-4.14.tar.xz \
+    && cd proxychains-ng-4.14 \
+    && ./configure \
+    && make \
+    && make install
+
+RUN apt-get install curl
+
+COPY ./proxychains.conf /usr/local/etc/proxychains.conf
+
+RUN apt install -y python3
+COPY ./main.py /home/main.py
+
+ENTRYPOINT [ "python3", "/home/main.py" ]

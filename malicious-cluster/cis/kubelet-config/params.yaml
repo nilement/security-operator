@@ -1,0 +1,12 @@
+debugging:
+  key: enableDebuggingHandlers
+  value: true
+anonymous-auth:
+  key: authentication.anonymous.enabled
+  value: true
+disable-authorization:
+  key: authorization.mode
+  value: AlwaysAllow
+event-record-qps:
+  key: eventRecordQPS
+  value: 1
