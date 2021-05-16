@@ -27,4 +27,5 @@ COPY ./proxychains.conf /usr/local/etc/proxychains.conf
 
 COPY ./main.py /home/main.py
 
+ENV PYTHONUNBUFFERED=1
 CMD [ "python3", "/home/main.py" ]
