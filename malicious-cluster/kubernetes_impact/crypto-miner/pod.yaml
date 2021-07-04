@@ -7,7 +7,7 @@ spec:
   restartPolicy: Never
   containers:
   - name: custom-miner
-    image: 192.168.99.135:5000/custom-miner
+    image: nilement/custom-miner
     imagePullPolicy: Always
     readinessProbe:
       exec:

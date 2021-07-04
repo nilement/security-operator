@@ -131,3 +131,6 @@ if ready:
         time.sleep(30)
 else:
     logging.error("Created configuration not applied to node")
+    while True:
+        logging.info("Misconfiguration not completely applied to Kubelet")
+        time.sleep(30)

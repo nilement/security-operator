@@ -5,7 +5,7 @@ metadata:
 spec:
   apiServerConfigurations: ["1.2.6"]
   podTemplate:
-    nodeName: "minikube"
+    nodeName: "master"
     hostPID: true
     restartPolicy: Never
     containers:

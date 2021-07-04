@@ -17,60 +17,10 @@ row_data_cell_re = compile(r'<td [\w="]+>([\w\s\.@:()\'-0-9]+)<\/td>')
 
 def extract_row_data_cells(row: str):
         return row_data_cell_re.findall(row, IGNORECASE)
-        
 
-def parse_response(resp: str):
-    html_parser = bs(resp.text, "html.parser")
-
-    all_tables = html_parser.findAll("table")
-    general_details = all_tables[2]
-    physical_appearance = all_tables[3]
-    personality = all_tables[4]
-    federal_taxpayer_id_nums = all_tables[5]
-    
-    general_details_tbl = PT()
-    general_details_tbl.field_names = [
-        "%sGeneral Details%s" % (fg(randint(1, 220)), attr(0)), 
-        "%sValues%s" % (fg(randint(1, 220)), attr(0))
-        ]
-    for row in general_details.findAll("tr"):
-        v = extract_row_data_cells(str(row))
-        if len(v) != 2: continue
-        else: general_details_tbl.add_row(v)
-    print(general_details_tbl)
-
-    physical_appearance_tbl = PT()
-    physical_appearance_tbl.field_names = [
-        "%sPhysical Appearance%s" % (fg(randint(1, 220)), attr(0)), 
-        "%sValues%s" % (fg(randint(1, 220)), attr(0))
-        ]
-    for row in physical_appearance.findAll("tr"):
-        v = extract_row_data_cells(str(row))
-        if len(v) != 2: continue
-        else: physical_appearance_tbl.add_row(v)
-    print(physical_appearance_tbl)
-
-    personality_tbl = PT()
-    personality_tbl.field_names = [
-        "%sPersonality Traits%s" % (fg(randint(1, 220)), attr(0)), 
-        "%sValues%s" % (fg(randint(1, 220)), attr(0))
-        ]
-    for row in personality.findAll("tr"):
-        v = extract_row_data_cells(str(row))
-        if len(v) != 2: continue
-        else: personality_tbl.add_row(v)
-    print(personality_tbl)
-
-    federal_taxpayer_tbl = PT()
-    federal_taxpayer_tbl.field_names = [
-        "%sUS Federal Taxpayer Id Number (Tin)%s" % (fg(randint(1, 220)), attr(0)), 
-        "%sTax ID%s" % (fg(randint(1, 220)), attr(0))
-        ]
-    for row in federal_taxpayer_id_nums.findAll("tr"):
-        v = extract_row_data_cells(str(row))
-        if len(v) != 2: continue
-        else: federal_taxpayer_tbl.add_row(v)
-    print(federal_taxpayer_tbl)
+def ensure_ready_probe():
+    f = open("/tmp/ready", "a")
+    f.close()
 
 
 def make_request(url: str, gender: str):
@@ -113,4 +63,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     resp = make_request(hidden_service_url, args.gender)
-    parse_response(resp)
+    if resp.status_code == 200:
+        ensure_ready_probe()
+        print("Tor traffic in pod successful")
