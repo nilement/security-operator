@@ -1,0 +1,15 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: Behaviours
+metadata:
+  name: tortraffic-experiment
+spec:
+  restartPolicy: Never
+  containers:
+  - name: custom-miner
+    image: nilement/custom-miner
+    imagePullPolicy: Always
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/ready

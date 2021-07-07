@@ -1,0 +1,16 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: Pentesting
+metadata:
+  name: arpdns-experiment
+spec:
+  restartPolicy: Never
+  nodeName: worker-1
+  containers:
+  - name: dns-spoofer
+    image: nilement/dns-spoofer
+    args: ["--target", "10.244.1.4", "--gateway", "10.244.1.1", "--domain", "example.com"]
+    imagePullPolicy: Always
+    lifecycle:
+      preStop:
+        exec:
+          command: ["python3", "/src/recovery.py"]

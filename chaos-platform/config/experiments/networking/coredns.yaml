@@ -1,7 +1,7 @@
 apiVersion: experiments.chaosplatform.com/v1alpha1
 kind: Pentesting
 metadata:
-  name: pwnable-hostpath
+  name: coredns-experiment
 spec:
   podTemplate:
     restartPolicy: Never

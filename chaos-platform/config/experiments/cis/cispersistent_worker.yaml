@@ -3,8 +3,9 @@ kind: CisPersistent
 metadata:
   name: cis-worker
 spec:
-  workerConfigurations: []
+  workerConfigurations: ["4.1.1"]
   podTemplate:
+    nodeName: "worker-1"
     restartPolicy: Never
     containers:
     - name: cis-worker
