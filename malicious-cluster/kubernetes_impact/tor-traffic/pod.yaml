@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tor-traffic
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+  - name: tor-traffic
+    image: 192.168.99.143:5000/tor-traffic
+    imagePullPolicy: Always
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/ready
