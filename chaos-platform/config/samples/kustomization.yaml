@@ -8,4 +8,6 @@ resources:
 - experiments_v1alpha1_pentesting.yaml
 - experiments_v1alpha1_behaviour.yaml
 - experiments_v1alpha1_networking.yaml
+- experiments_v1alpha1_coredns.yaml
+- experiments_v1alpha1_arpdns.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

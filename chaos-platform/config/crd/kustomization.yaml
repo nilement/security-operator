@@ -10,6 +10,8 @@ resources:
 - bases/experiments.chaosplatform.com_pentestings.yaml
 - bases/experiments.chaosplatform.com_behaviours.yaml
 - bases/experiments.chaosplatform.com_networkings.yaml
+- bases/experiments.chaosplatform.com_coredns.yaml
+- bases/experiments.chaosplatform.com_arpdns.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
@@ -24,6 +26,8 @@ patchesStrategicMerge:
 #- patches/webhook_in_pentestings.yaml
 #- patches/webhook_in_behaviours.yaml
 #- patches/webhook_in_networkings.yaml
+#- patches/webhook_in_coredns.yaml
+#- patches/webhook_in_arpdns.yaml
 # +kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable webhook, uncomment all the sections with [CERTMANAGER] prefix.
@@ -37,6 +41,8 @@ patchesStrategicMerge:
 #- patches/cainjection_in_pentestings.yaml
 #- patches/cainjection_in_behaviours.yaml
 #- patches/cainjection_in_networkings.yaml
+#- patches/cainjection_in_coredns.yaml
+#- patches/cainjection_in_arpdns.yaml
 # +kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.
