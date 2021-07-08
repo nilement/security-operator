@@ -1,5 +1,5 @@
 apiVersion: experiments.chaosplatform.com/v1alpha1
-kind: Behaviours
+kind: Behaviour
 metadata:
   name: tortraffic-experiment
 spec:

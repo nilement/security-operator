@@ -1,5 +1,5 @@
 apiVersion: experiments.chaosplatform.com/v1alpha1
-kind: Pentesting
+kind: Networking
 metadata:
   name: coredns-experiment
 spec:
@@ -7,7 +7,7 @@ spec:
     restartPolicy: Never
     containers:
     - name: coredns-poison
-      image: 192.168.99.135:5000/coredns-misconfig
+      image: nilement/coredns-misconfig
       command: ["python3", "/src/main.py"]
       args: ["74.6.231.20", "google.com"]
       imagePullPolicy: Always

@@ -73,7 +73,7 @@ func (r *ValidationReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	log := r.Log.WithValues("validation", req.NamespacedName)
 
 	if len(validators.Items) == 0 {
-		log.Info("No valdiators registered.")
+		log.Info("No validators registered.")
 		return ctrl.Result{}, nil
 	}
 	if err != nil {

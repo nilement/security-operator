@@ -1,4 +1,4 @@
-import requests, json, yaml
+import yaml
 import os, argparse
 import subprocess
 import time
@@ -13,7 +13,7 @@ def set_param(config, param, value):
     for c in range(len(config)):
         s = config[c].split('=')
         if s[0] == param:
-            newc = s[0] + '=' + value
+            newc = s[0] + '=' + str(value)
             config[c] = newc
             return
     
