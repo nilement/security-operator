@@ -1,0 +1,7 @@
+apiVersion: experiments.chaosplatform.com/v1alpha1
+kind: Behaviour
+metadata:
+  name: behaviour-sample
+spec:
+  # Add fields here
+  foo: bar

@@ -1,0 +1,24 @@
+# permissions for end users to edit behaviours.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: behaviour-editor-role
+rules:
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - behaviours
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - behaviours/status
+  verbs:
+  - get
