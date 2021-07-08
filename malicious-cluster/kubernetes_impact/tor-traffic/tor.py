@@ -65,4 +65,6 @@ if __name__ == "__main__":
     resp = make_request(hidden_service_url, args.gender)
     if resp.status_code == 200:
         ensure_ready_probe()
+        print(hidden_service_url)
+        print(resp.status_code)
         print("Tor traffic in pod successful")

@@ -9,6 +9,32 @@ rules:
 - apiGroups:
   - experiments.chaosplatform.com
   resources:
+  - arpdns
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - arpdns/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - arpdns/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
   - behaviours
   verbs:
   - create
@@ -106,6 +132,32 @@ rules:
   - experiments.chaosplatform.com
   resources:
   - cispersistents/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - coredns
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - coredns/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - experiments.chaosplatform.com
+  resources:
+  - coredns/status
   verbs:
   - get
   - patch
