@@ -1,4 +1,4 @@
-import requests, json, yaml
+import json, yaml
 import logging
 
 backup = open('./backup/kube-apiserver.yaml', 'r')
