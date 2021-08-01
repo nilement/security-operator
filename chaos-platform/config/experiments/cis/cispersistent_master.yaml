@@ -3,52 +3,63 @@ kind: CisPersistent
 metadata:
   name: cis-master
 spec:
-  masterConfigurations: ["1.1.1", "1.1.2", "1.1.3"]
+  masterConfigurations: ["1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5", "1.1.6", "1.1.7", "1.1.8", "1.1.13", "1.1.14", "1.1.15", "1.1.16", "1.1.17", "1.1.18"]
   podTemplate:
     nodeName: "minikube"
     restartPolicy: Never
     containers:
     - name: cis-worker
-      image: 192.168.99.131:5000/cis-worker
+      image: 192.168.99.102:5000/cis-worker
       imagePullPolicy: IfNotPresent
       lifecycle:
         preStop:
           exec:
             command: ["/src/main", "-r"]
-      readinessProbe:
-        exec:
-          command:
-          - cat
-          - /tmp/ready
-        initialDelaySeconds: 5
-        periodSeconds: 5
       volumeMounts:
-      - mountPath: "/config/kube-apiserver.yaml"
-        name: kube-apiserver
-      - mountPath: "/config/kube-controller-manager.yaml"
-        name: kube-controller-manager
-      - mountPath: "/config/kube-scheduler.yaml"
-        name: kube-scheduler
-      - mountPath: "/config/etcd.yaml"
-        name: etcd
+        - mountPath: "/config/kube-apiserver.yaml"
+          name: kube-apiserver
+        - mountPath: "/config/kube-controller-manager.yaml"
+          name: kube-controller-manager
+        - mountPath: "/config/kube-scheduler.yaml"
+          name: kube-scheduler
+        - mountPath: "/config/etcd.yaml"
+          name: etcd
+        - mountPath: "/config/admin.conf"
+          name: admin
+        - mountPath: "/config/scheduler.conf"
+          name: scheduler
+        - mountPath: "/config/controller-manager.conf"
+          name: controller-manager
       resources:
         limits:
           cpu: "0.2"
           memory: "100Mi"
     volumes:
-      - name: kube-apiserver
-        hostPath:
-            path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
-            type: File
-      - name: kube-controller-manager
-        hostPath:
-            path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
-            type: File
-      - name: kube-scheduler
-        hostPath:
-            path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
-            type: File
-      - name: etcd
-        hostPath:
-            path: "/etc/kubernetes/manifests/etcd.yaml"
-            type: File
+        - name: kube-apiserver
+          hostPath:
+              path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+              type: File
+        - name: kube-controller-manager
+          hostPath:
+              path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+              type: File
+        - name: kube-scheduler
+          hostPath:
+              path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
+              type: File
+        - name: etcd
+          hostPath:
+              path: "/etc/kubernetes/manifests/etcd.yaml"
+              type: File
+        - name: controller-manager
+          hostPath:
+              path: "/etc/kubernetes/controller-manager.conf"
+              type: File
+        - name: scheduler
+          hostPath:
+              path: "/etc/kubernetes/scheduler.conf"
+              type: File
+        - name: admin
+          hostPath:
+              path: "/etc/kubernetes/admin.conf"
+              type: File

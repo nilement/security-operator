@@ -2,11 +2,12 @@ apiVersion: experiments.chaosplatform.com/v1alpha1
 kind: Networking
 metadata:
   name: coredns-experiment
+  namespace: default
 spec:
   podTemplate:
     restartPolicy: Never
     containers:
-    - name: coredns-poison
+    - name: coredns-experiment
       image: nilement/coredns-misconfig
       command: ["python3", "/src/main.py"]
       args: ["74.6.231.20", "google.com"]

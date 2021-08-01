@@ -3,13 +3,13 @@ kind: CisPersistent
 metadata:
   name: cis-worker
 spec:
-  workerConfigurations: ["4.1.1"]
+  workerConfigurations: ["4.1.1", "4.1.2", "4.1.5", "4.1.6", "4.1.9", "4.1.10"]
   podTemplate:
-    nodeName: "worker-1"
+    nodeName: "minikube-m02"
     restartPolicy: Never
     containers:
     - name: cis-worker
-      image: 192.168.99.135:5000/cis-worker
+      image: 192.168.99.100:5000/cis-worker
       imagePullPolicy: IfNotPresent
       lifecycle:
         preStop:

@@ -3,13 +3,14 @@ kind: Behaviour
 metadata:
   name: tortraffic-experiment
 spec:
-  restartPolicy: Never
-  containers:
-  - name: tor-traffic
-    image: 192.168.99.142:5000/tor-traffic
-    imagePullPolicy: Always
-    readinessProbe:
-      exec:
-        command:
-        - cat
-        - /tmp/ready
+  podTemplate:
+    restartPolicy: Never
+    containers:
+    - name: tor-traffic
+      image: 192.168.99.102:5000/tor-traffic
+      imagePullPolicy: Always
+      readinessProbe:
+        exec:
+          command:
+          - cat
+          - /tmp/ready

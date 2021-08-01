@@ -36,6 +36,8 @@ spec:
           spec:
             description: ArpDnsSpec defines the desired state of ArpDns
             properties:
+              gatewayIp:
+                type: string
               podTemplate:
                 description: PodSpec is a description of a pod.
                 properties:
@@ -6040,8 +6042,15 @@ spec:
                 required:
                 - containers
                 type: object
+              spoofedDomain:
+                type: string
+              targetIp:
+                type: string
             required:
+            - gatewayIp
             - podTemplate
+            - spoofedDomain
+            - targetIp
             type: object
           status:
             description: ArpDnsStatus defines the observed state of ArpDns

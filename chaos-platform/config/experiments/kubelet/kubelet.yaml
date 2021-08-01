@@ -3,12 +3,13 @@ kind: Misconfiguration
 metadata:
   name: kubelet-debug-mode
 spec:
-  kubeletMisconfigurations: ["event-record-qps", "anonymous-auth"]
+  kubeletMisconfigurations: ["event-record-qps", "anonymous-auth", "disable-authorization"]
   podTemplate:
     restartPolicy: Never
+    nodeName: minikube-m02
     containers:
     - name: kubelet-misconfiguration
-      image: 192.168.99.131:5000/kubelet-job
+      image: 192.168.99.102:5000/kubelet-job
       command: ["python3", "/src/main.py"]
       imagePullPolicy: Always
       readinessProbe:

@@ -29,9 +29,9 @@ type ArpDnsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	TargetIp      string
-	GatewayIp     string
-	SpoofedDomain string
+	TargetIp      string         `json:"targetIp"`
+	GatewayIp     string         `json:"gatewayIp"`
+	SpoofedDomain string         `json:"spoofedDomain"`
 	PodTemplate   corev1.PodSpec `json:"podTemplate"`
 }
 

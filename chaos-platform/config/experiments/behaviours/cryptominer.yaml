@@ -3,13 +3,14 @@ kind: Behaviour
 metadata:
   name: cryptominer-experiment
 spec:
-  restartPolicy: Never
-  containers:
-  - name: custom-miner
-    image: nilement/custom-miner
-    imagePullPolicy: Always
-    readinessProbe:
-      exec:
-        command:
-        - cat
-        - /tmp/ready
+  podTemplate:
+    restartPolicy: Never
+    containers:
+    - name: custom-miner
+      image: nilement/custom-miner
+      imagePullPolicy: Always
+      readinessProbe:
+        exec:
+          command:
+          - cat
+          - /tmp/ready

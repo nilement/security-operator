@@ -6040,8 +6040,14 @@ spec:
                 required:
                 - containers
                 type: object
+              targetHostname:
+                type: string
+              targetIp:
+                type: string
             required:
             - podTemplate
+            - targetHostname
+            - targetIp
             type: object
           status:
             description: CoreDnsStatus defines the observed state of CoreDns

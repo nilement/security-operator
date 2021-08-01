@@ -29,8 +29,8 @@ type CoreDnsSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	TargetIp       string
-	TargetHostname string
+	TargetIp       string         `json:"targetIp"`
+	TargetHostname string         `json:"targetHostname"`
 	PodTemplate    corev1.PodSpec `json:"podTemplate"`
 }
 
